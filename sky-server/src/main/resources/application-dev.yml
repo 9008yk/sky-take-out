@@ -4,5 +4,10 @@ sky:
     host: localhost
     port: 3306
     database: sky_take_out
-    username: root
-    password: 956822yy
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD}
+  alioss:
+    endpoint: oss-cn-beijing.aliyuncs.com
+    access-key-id: ${ALIYUN_OSS_ACCESS_KEY_ID}
+    access-key-secret: ${ALIYUN_OSS_ACCESS_KEY_SECRET}
+    bucket-name: web-hm-cq
