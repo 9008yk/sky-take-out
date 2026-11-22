@@ -10,4 +10,5 @@ public interface DishFlavorMapper {
 
     void insertFlavor(List<DishFlavor> dishFlavors);
 
+    void deleteFlavor(List<Long> ids);
 }

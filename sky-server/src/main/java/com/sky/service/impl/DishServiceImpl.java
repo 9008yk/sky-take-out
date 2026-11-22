@@ -2,12 +2,17 @@ package com.sky.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.sky.constant.MessageConstant;
+import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.entity.SetmealDish;
+import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
+import com.sky.mapper.SetmealDishMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
@@ -25,6 +30,9 @@ public class DishServiceImpl implements DishService {
 
     @Autowired
     private DishFlavorMapper dishFlavorMapper;
+
+    @Autowired
+    private SetmealDishMapper setmealDishMapper;
 
    @Override
    @Transactional
@@ -55,5 +63,39 @@ public class DishServiceImpl implements DishService {
        Page<DishVO> page= dishMapper.pageQuery(dishPageQueryDTO);
        return new PageResult(page.getTotal(),page.getResult());
    }
+
+   @Override
+   @Transactional
+    public void deleteDish(List<Long> ids){
+       for(Long id:ids) {
+           //判断这个id中包括的菜品中有没有状态为启售中的,有的话,直接抛异常
+           Dish dish = new Dish();
+           dish = dishMapper.select(id);
+           if (dish.getStatus() == StatusConstant.ENABLE) {
+              throw new DeletionNotAllowedException(MessageConstant.DISH_ON_SALE);
+
+           }
+
+           //判断这个菜品是否包含在套餐中,如果在套餐中,直接抛异常
+           List<SetmealDish> setmealDishes = setmealDishMapper.selectSetmeal(id);
+           if (setmealDishes != null && setmealDishes.size() > 0) {
+              throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
+
+           }
+
+           //删除菜品
+//           dishMapper.deleteDish(id);
+
+           //断菜品有没有关联口味,如果有,删除掉
+//           dishFlavorMapper.deleteFlavor(id);
+       }
+
+       //批量删除菜品
+       dishMapper.deleteDish(ids);
+       //批量删除口味
+       dishFlavorMapper.deleteFlavor(ids);
+   }
+
+
 }
 
